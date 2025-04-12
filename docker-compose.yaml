@@ -1,12 +1,14 @@
 services:
   ollama:
-    volumes:
-      - ollama:/root/.ollama
-    container_name: ollama
-    pull_policy: always
-    tty: true
-    restart: unless-stopped
-    image: ollama/ollama:${OLLAMA_DOCKER_TAG-latest}
+    devices:
+      - /dev/kfd:/dev/kfd
+      - /dev/dri:/dev/dri
+    image: ollama/ollama:${OLLAMA_DOCKER_TAG-rocm}
+    ports:
+      - 11434:11434/udp
+      - 11434:11434/tcp
+    environment:
+      - 'HSA_OVERRIDE_GFX_VERSION=${HSA_OVERRIDE_GFX_VERSION-10.3.0}'
 
   open-webui:
     build:
@@ -21,7 +23,7 @@ services:
     depends_on:
       - ollama
     ports:
-      - ${OPEN_WEBUI_PORT-3000}:8080
+      - ${OPEN_WEBUI_PORT-3000}:3000
     environment:
       - 'OLLAMA_BASE_URL=http://ollama:11434'
       - 'WEBUI_SECRET_KEY='
